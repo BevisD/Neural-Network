@@ -1,4 +1,5 @@
-"""Module containing activation functions for neural-network layers
+"""Module containing activation functions and their gradients
+for neural-network layers
 
 """
 
@@ -31,6 +32,8 @@ def relu_grad(x: np.ndarray) -> np.ndarray:
     """
     Computes the gradient of the relu function at x
 
+    Output is 0 for negative inputs and 1 for positive inputs
+
     Parameters
     ----------
     x: ndarray
@@ -48,6 +51,8 @@ def linear(x: np.ndarray) -> np.ndarray:
     """
     The linear activation function returns the input
 
+    Output is unchanged
+
     Parameters
     ----------
     x: ndarray
@@ -64,6 +69,8 @@ def linear(x: np.ndarray) -> np.ndarray:
 
 def linear_grad(x: np.ndarray) -> np.ndarray:
     """Computes the gradient of the linear function
+
+    The gradient of the linear function is always 1
 
     Parameters
     ----------

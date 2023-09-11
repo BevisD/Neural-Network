@@ -1,9 +1,13 @@
+"""Module containing cost/loss functions and their gradients
+
+"""
+
 import numpy as np
 
-__all__ = ["cost_functions"]
+__all__ = ["cost_functions", "mean_square_error"]
 
 
-def mean_square_error(t: np.ndarray, y: np.ndarray) -> float:
+def mean_square_error(t: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
     Computes the MSE of output and target
 
@@ -16,13 +20,13 @@ def mean_square_error(t: np.ndarray, y: np.ndarray) -> float:
 
     Returns
     -------
-    loss: float
+    cost: float
         Total cost of the output and target
 
     """
     assert t.shape == y.shape
     diff = y - t
-    cost = np.sum(diff**2) / t.shape[0]
+    cost = np.sum(diff**2)
     return cost
 
 
@@ -44,10 +48,7 @@ def mean_square_grad(t: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
     assert t.shape == y.shape
     diff = y - t
-    grad = 2 * diff / t.shape[0]
-
-    if np.ndim(grad) == 3:
-        grad = np.sum(grad, axis=0)
+    grad = 2 * diff
     return grad
 
 
