@@ -1,3 +1,4 @@
 from .neural_network import *
-from .activation_functions import *
-from .cost_functions import *
+from .activation_funcs import *
+from .cost_funcs import *
+from .layer import *
