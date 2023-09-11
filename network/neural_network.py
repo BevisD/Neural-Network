@@ -2,7 +2,8 @@
 """
 
 import numpy as np
-from .activation_functions import relu
+from .activation_functions import *
+from .cost_functions import *
 
 __all__ = ["NeuralNetwork"]
 
@@ -33,10 +34,12 @@ class NeuralNetwork:
             A list of the number of neurons in each layer
         """
         self.N = len(shape)
-        self.weights = [np.random.normal(size=(shape[i+1], shape[i]))
+        self.weights = [np.random.uniform(0, 1, size=(shape[i+1], shape[i]))
                         for i in range(self.N-1)]
-        self.biases = [np.random.normal(size=(shape[i], 1))
+        self.biases = [np.random.uniform(0, 1, size=(shape[i], 1))
                        for i in range(1, self.N)]
+        self.cost = mean_square_error
+        self.cost_grad = mean_square_grad
 
     def feed_forward(self, inputs: np.ndarray):
         """

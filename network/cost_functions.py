@@ -5,6 +5,8 @@ __all__ = ["mean_square_error", "mean_square_grad"]
 
 def mean_square_error(t, y):
     """
+    Computes the MSE of output and target
+
     Parameters
     ----------
     t: ndarray
@@ -26,6 +28,8 @@ def mean_square_error(t, y):
 
 def mean_square_grad(t, y):
     """
+    Computes the gradient of the MSE for output and target
+
     Parameters
     ----------
     t: ndarray
@@ -41,4 +45,7 @@ def mean_square_grad(t, y):
     assert t.shape == y.shape
     diff = y - t
     grad = 2 * diff / t.shape[0]
+
+    if np.ndim(grad) == 3:
+        grad = np.sum(grad, axis=0)
     return grad

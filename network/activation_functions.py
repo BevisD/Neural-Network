@@ -4,10 +4,10 @@
 
 import numpy as np
 
-__all__ = ["relu"]
+__all__ = ["relu", "relu_grad"]
 
 
-def relu(x):
+def relu(x: np.ndarray):
     """
     Applies the ReLU function to the input
 
@@ -25,3 +25,20 @@ def relu(x):
 
     """
     return np.maximum(0, x)
+
+
+def relu_grad(x: np.ndarray):
+    """
+    Computes the gradient of the relu function at x
+
+    Parameters
+    ----------
+    x: ndarray
+        Input vector for relu gradient
+
+    Returns
+    -------
+    grad: ndarray
+        Gradient of relu at x
+    """
+    return (x > 0).astype(int)
