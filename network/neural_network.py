@@ -22,6 +22,8 @@ class NeuralNetwork:
         List containing the layers of the network
     N: int
         Number of layers
+    losses: list
+        History of total loss at each epoch
 
     Methods
     -------
@@ -40,6 +42,7 @@ class NeuralNetwork:
         self.shape = [m]
         self.layers = [Layer(m)]
         self.N = 1
+        self.losses = []
 
     def add_layer(self, layer: Layer) -> None:
         """
@@ -105,6 +108,7 @@ class NeuralNetwork:
         """
         cost_func, cost_grad = cost_functions[cost]
 
+        self.losses = []
         for epoch in range(epochs):
             loss = 0
             for x, y in zip(X, Y):
@@ -130,5 +134,7 @@ class NeuralNetwork:
                     # Update weights and biases
                     layer.weights -= eta * d_weights
                     layer.biases -= eta * d_biases
+
+            self.losses.append(loss)
             if verbose:
                 print(f"Epoch {epoch},\tLoss: {loss:.4e}")
