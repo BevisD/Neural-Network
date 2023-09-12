@@ -3,6 +3,7 @@
 """
 
 from .activation_funcs import activation_functions
+import numpy as np
 
 __all__ = ["Layer"]
 
@@ -13,23 +14,23 @@ class Layer:
 
     Attributes
     ----------
-    weights: ndarray
+    W: ndarray
         The weight matrix connecting this layer and the previous layer
         Shape (m_{l} x m_{l-1})
-    biases: ndarray
+    b: ndarray
         A column vector containing biases for this layer
         Shape (m_{l} x 1)
-    activation_func: callable
+    f: callable
         The activation function for this layer
-    activation_grad: callable
+    f_grad: callable
         The gradient of the activation function
     m: int
         The number of neurons in the layer
-    activation: ndarray
+    A: ndarray
         A column vector containing the activations
         of the most recent feed-forward
         Shape (m_{l} x 1)
-    pre_activation: ndarray
+    Z: ndarray
         A column vector containing the pre-activations
         of the most recent feed-forward
 
@@ -45,10 +46,22 @@ class Layer:
     Z_{l} = W_{l} x A_{l-1} + b_{l}
     """
     def __init__(self, m: int, activation: str = "relu") -> None:
-        self.weights = None
-        self.biases = None
-        self.activation_func, self.activation_grad\
+        self.W = np.array([])
+        self.b = np.array([])
+        self.f, self.f_grad\
             = activation_functions[activation]
         self.m = m
-        self.activation = None
-        self.pre_activation = None
+        self.A = np.array([])
+        self.Z = np.array([])
+        self.d_A = np.array([])
+        self.d_Z = np.array([])
+        self.d_W = np.array([])
+        self.d_b = np.array([])
+
+    def reset(self):
+        self.A *= 0
+        self.Z *= 0
+        self.d_A = 0
+        self.d_Z = 0
+        self.d_W = 0
+        self.d_b = 0

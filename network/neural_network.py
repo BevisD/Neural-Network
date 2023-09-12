@@ -7,7 +7,47 @@ from .activation_funcs import *
 from .cost_funcs import *
 from .layer import *
 
-__all__ = ["NeuralNetwork"]
+__all__ = ["NeuralNetwork", "create_mini_batches"]
+
+
+def create_mini_batches(data_size: int, batch_size: int):
+    """
+    Creates batches of indices
+
+    Parameters
+    ----------
+    data_size: int
+        The total number of training data points
+    batch_size
+        The size of the batch to split into
+
+    Returns
+    -------
+    mini_batches: list
+
+    Examples
+    --------
+    >>> create_mini_batches(10, 4)
+    [array([6, 2, 9, 7]), array([0, 4, 3, 8]), array([1, 5])] # random
+
+    """
+    mini_batches = []
+
+    # Shuffle the data
+    perm = np.random.permutation(data_size)
+
+    num_batches = data_size // batch_size
+    for i in range(num_batches):
+        mini_batch = perm[i * batch_size: (i + 1) * batch_size]
+
+        mini_batches.append(mini_batch)
+
+    # Handle last batch if it's smaller than batch size
+    if data_size % batch_size != 0:
+        mini_batch = perm[num_batches * batch_size:]
+        mini_batches.append(mini_batch)
+
+    return mini_batches
 
 
 class NeuralNetwork:
@@ -54,11 +94,16 @@ class NeuralNetwork:
             The layer to append to the network
 
         """
-        layer.weights = np.random.normal(size=(layer.m, self.shape[-1]))
-        layer.biases = np.random.normal(size=(layer.m, 1))
+        layer.W = np.random.normal(size=(layer.m, self.shape[-1]))
+        layer.b = np.random.normal(size=(layer.m, 1))
+
         self.shape.append(layer.m)
         self.layers.append(layer)
         self.N += 1
+
+    def reset_layers(self):
+        for layer in self.layers:
+            layer.reset()
 
     def feed_forward(self, X: np.ndarray) -> np.ndarray:
         """
@@ -75,19 +120,20 @@ class NeuralNetwork:
         activation: ndarray
             The activation of the output layer of the network
         """
-        activation = X.copy()
-        self.layers[0].activation = activation
+        A = X.copy()
+        self.layers[0].A = A
         for layer in self.layers[1:]:
-            pre_activation = np.matmul(layer.weights, activation) + layer.biases
-            activation = layer.activation_func(pre_activation)
+            Z = np.matmul(layer.W, A) + layer.b
+            A = layer.f(Z)
 
-            layer.pre_activation = pre_activation
-            layer.activation = activation
-        return activation
+            layer.Z = Z
+            layer.A = A
+        return A
 
     def fit(self, X: np.ndarray, Y: np.ndarray,
             eta: float = 0.01, cost: str = "MSE",
-            epochs: int = 100, verbose: bool = True) -> None:
+            epochs: int = 100, batch_size: int = 1,
+            verbose: bool = True) -> None:
         """
 
         Parameters
@@ -102,39 +148,55 @@ class NeuralNetwork:
             Name of the cost function to use
         epochs: int
             Number of iterations of training data
+        batch_size: int
+            Number of data points to train on before
+            updating weights and biases
         verbose: bool
             Option to print out training statistics
 
         """
-        cost_func, cost_grad = cost_functions[cost]
 
         self.losses = []
         for epoch in range(epochs):
             loss = 0
-            for x, y in zip(X, Y):
-                # FORWARD STEP
-                self.feed_forward(x)
-
-                # BACKWARD STEP
-                # Initialise backward step by calculating activation differential
-                d_activation = cost_grad(y, self.layers[-1].activation)
-                loss += cost_func(y, self.layers[-1].activation)
-
-                for L in range(self.N - 1, 0, -1):
-                    layer = self.layers[L]
-                    prev_layer = self.layers[L - 1]
-
-                    # Calculate weights and biases gradients
-                    # Update activation differential
-                    d_pre_activation = d_activation * layer.activation_grad(layer.pre_activation)
-                    d_weights = np.matmul(d_pre_activation, prev_layer.activation.T)
-                    d_biases = d_pre_activation
-                    d_activation = np.matmul(layer.weights.T, d_pre_activation)
-
-                    # Update weights and biases
-                    layer.weights -= eta * d_weights
-                    layer.biases -= eta * d_biases
+            mini_batches = create_mini_batches(X.shape[0], batch_size)
+            for mini_batch in mini_batches:
+                X_mini = X[mini_batch]
+                Y_mini = Y[mini_batch]
+                loss += self.fit_batch(X_mini, Y_mini, cost=cost, eta=eta)
 
             self.losses.append(loss)
             if verbose:
                 print(f"Epoch {epoch},\tLoss: {loss:.4e}")
+
+    def fit_batch(self, X, Y, cost: str = "MSE", eta: float = 0.01) -> float:
+        L, L_grad = cost_functions[cost]
+        self.reset_layers()
+
+        loss = 0
+        for x, y in zip(X, Y):
+            # FORWARD STEP
+            self.feed_forward(x)
+
+            # BACKWARD STEP
+            # Initialise backward step by calculating activation differential
+            self.layers[-1].d_A = L_grad(y, self.layers[-1].A)
+            loss += L(y, self.layers[-1].A)
+
+            for L in range(self.N - 1, 0, -1):
+                this_layer = self.layers[L]
+                prev_layer = self.layers[L - 1]
+
+                # Calculate weights and biases gradients
+                # Update activation differential
+                this_layer.d_Z = this_layer.d_A * this_layer.f_grad(this_layer.Z)
+                this_layer.d_W += np.matmul(this_layer.d_Z, prev_layer.A.T)
+                this_layer.d_b += this_layer.d_Z
+                prev_layer.d_A = np.matmul(this_layer.W.T, this_layer.d_Z)
+
+        # Update weights and biases
+        for layer in self.layers:
+            layer.W -= eta * layer.d_W
+            layer.b -= eta * layer.d_b
+
+        return loss
