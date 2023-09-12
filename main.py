@@ -7,7 +7,7 @@ def main():
     np.random.seed(1)
 
     NN = NeuralNetwork(2)
-    NN.add_layer(Layer(2))
+    NN.add_layer(Layer(3))
     NN.add_layer(Layer(1, activation="linear"))
 
     X_train = np.array([
@@ -23,7 +23,7 @@ def main():
         [0]
     ])
 
-    NN.fit(X_train, Y_train, 500, verbose=False)
+    NN.fit(X_train, Y_train, epochs=1000, batch_size=2, verbose=False)
     print(NN.feed_forward(X_train))
 
 
