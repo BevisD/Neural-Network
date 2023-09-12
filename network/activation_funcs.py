@@ -85,7 +85,59 @@ def linear_grad(x: np.ndarray) -> np.ndarray:
     return np.ones_like(x)
 
 
+def sigmoid(x: np.ndarray) -> np.ndarray:
+    """
+    Applies the sigmoid function to the input
+
+    Maps any real number to the range (-1, 1)
+
+    -inf -> 0
+    0 -> 0.5
+    inf -> 1
+
+    Parameters
+    ----------
+    x: ndarray
+        The pre-activation matrix
+
+    Returns
+    -------
+    ndarray
+        The activation matrix
+
+    """
+    return 1 / (1 + np.exp(-x))
+
+
+def sigmoid_grad(x: np.ndarray) -> np.ndarray:
+    """
+    Returns the gradient of the sigmoid function at x
+
+    A quirk of the sigmoid function is that the gradient of s is
+    s * (1 - s)
+
+    Parameters
+    ----------
+    x: ndarray
+        The pre-activation matrix
+
+    Returns
+    -------
+    ndarray
+        The activation matrix
+
+    """
+    s = sigmoid(x)
+    return s * (1 - s)
+
+
+def tanh_grad(x: np.ndarray) -> np.ndarray:
+    return 1 / np.cosh(x) ** 2
+
+
 activation_functions = {
     "relu": (relu, relu_grad),
-    "linear": (linear, linear_grad)
+    "linear": (linear, linear_grad),
+    "sigmoid": (sigmoid, sigmoid_grad),
+    "tanh": (np.tanh, tanh_grad)
 }

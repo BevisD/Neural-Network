@@ -6,11 +6,13 @@ from network import *
 def main():
     np.random.seed(1)
 
-    NN_1 = NeuralNetwork(2)
-    NN_1.add_layer(Layer(3))
-    NN_1.add_layer(Layer(1, activation="linear"))
-    NN_2 = NN_1.copy()
-    NN_4 = NN_1.copy()
+    NN_r = NeuralNetwork(2)
+    NN_r.add_layer(Layer(3, activation="relu"))
+    NN_r.add_layer(Layer(1, activation="linear"))
+
+    NN_t = NeuralNetwork(2)
+    NN_t.add_layer(Layer(3, activation="tanh"))
+    NN_t.add_layer(Layer(1, activation="linear"))
 
     X_train = np.array([
         [1, 1],
@@ -25,15 +27,11 @@ def main():
         [0]
     ])
 
-    NN_1.fit(X_train, Y_train, 100, verbose=False)
-    NN_2.fit(X_train, Y_train, 100, batch_size=2, verbose=False)
-    NN_4.fit(X_train, Y_train, 100, batch_size=4, verbose=False)
-    plt.plot(NN_1.losses, label="Batch-size-1")
-    plt.plot(NN_2.losses, label="Batch-size-2")
-    plt.plot(NN_4.losses, label="Batch-size-4")
+    NN_r.fit(X_train, Y_train, 1000, eta=0.1, verbose=False)
+    NN_t.fit(X_train, Y_train, 1000, eta=0.1, verbose=False)
 
-    plt.xlabel("Epoch #")
-    plt.ylabel("Loss")
+    plt.plot(NN_r.losses, label="ReLU")
+    plt.plot(NN_t.losses, label="tanh")
     plt.legend()
     plt.show()
 
