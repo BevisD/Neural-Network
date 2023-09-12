@@ -94,8 +94,10 @@ class NeuralNetwork:
             The layer to append to the network
 
         """
-        layer.W = np.random.normal(size=(layer.m, self.shape[-1]))
-        layer.b = np.random.normal(size=(layer.m, 1))
+        layer.W = np.random.normal(size=(self.shape[-1], layer.m))
+        layer.b = np.random.normal(size=(1, layer.m))
+        layer.d_W = np.zeros_like(layer.W)
+        layer.d_b = np.zeros_like(layer.b)
 
         self.shape.append(layer.m)
         self.layers.append(layer)
@@ -123,16 +125,16 @@ class NeuralNetwork:
         A = X.copy()
         self.layers[0].A = A
         for layer in self.layers[1:]:
-            Z = np.matmul(layer.W, A) + layer.b
+            Z = np.matmul(A, layer.W) + layer.b
             A = layer.f(Z)
 
             layer.Z = Z
             layer.A = A
         return A
 
-    def fit(self, X: np.ndarray, Y: np.ndarray,
+    def fit(self, X: np.ndarray, Y: np.ndarray, epochs: int,
             eta: float = 0.01, cost: str = "MSE",
-            epochs: int = 100, batch_size: int = 1,
+            batch_size: int = 1,
             verbose: bool = True) -> None:
         """
 
@@ -171,28 +173,28 @@ class NeuralNetwork:
 
     def fit_batch(self, X, Y, cost: str = "MSE", eta: float = 0.01) -> float:
         L, L_grad = cost_functions[cost]
+        m = X.shape[0]
         self.reset_layers()
 
         loss = 0
-        for x, y in zip(X, Y):
-            # FORWARD STEP
-            self.feed_forward(x)
+        # FORWARD STEP
+        self.feed_forward(X)
 
-            # BACKWARD STEP
-            # Initialise backward step by calculating activation differential
-            self.layers[-1].d_A = L_grad(y, self.layers[-1].A)
-            loss += L(y, self.layers[-1].A)
+        # BACKWARD STEP
+        # Initialise backward step by calculating activation differential
+        self.layers[-1].d_A = L_grad(Y, self.layers[-1].A)
+        loss += L(Y, self.layers[-1].A)
 
-            for L in range(self.N - 1, 0, -1):
-                this_layer = self.layers[L]
-                prev_layer = self.layers[L - 1]
+        for L in range(self.N - 1, 0, -1):
+            this_layer = self.layers[L]
+            prev_layer = self.layers[L - 1]
 
-                # Calculate weights and biases gradients
-                # Update activation differential
-                this_layer.d_Z = this_layer.d_A * this_layer.f_grad(this_layer.Z)
-                this_layer.d_W += np.matmul(this_layer.d_Z, prev_layer.A.T)
-                this_layer.d_b += this_layer.d_Z
-                prev_layer.d_A = np.matmul(this_layer.W.T, this_layer.d_Z)
+            # Calculate weights and biases gradients
+            # Update activation differential
+            this_layer.d_Z = this_layer.d_A * this_layer.f_grad(this_layer.Z)
+            this_layer.d_W += np.matmul(prev_layer.A.T, this_layer.d_Z) / m
+            this_layer.d_b += np.sum(this_layer.d_Z, axis=0) / m
+            prev_layer.d_A = np.matmul(this_layer.d_Z, this_layer.W.T)
 
         # Update weights and biases
         for layer in self.layers:

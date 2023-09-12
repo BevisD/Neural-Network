@@ -59,9 +59,5 @@ class Layer:
         self.d_b = np.array([])
 
     def reset(self):
-        self.A *= 0
-        self.Z *= 0
-        self.d_A = 0
-        self.d_Z = 0
         self.d_W = 0
         self.d_b = 0
