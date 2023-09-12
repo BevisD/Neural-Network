@@ -84,6 +84,14 @@ class NeuralNetwork:
         self.N = 1
         self.losses = []
 
+    def copy(self):
+        NN = NeuralNetwork(0)
+        NN.shape = self.shape.copy()
+        NN.layers = [layer.copy() for layer in self.layers]
+        NN.N = self.N
+        NN.losses = self.losses.copy()
+        return NN
+
     def add_layer(self, layer: Layer) -> None:
         """
         Appends a layer object to the network
@@ -176,14 +184,13 @@ class NeuralNetwork:
         m = X.shape[0]
         self.reset_layers()
 
-        loss = 0
         # FORWARD STEP
         self.feed_forward(X)
 
         # BACKWARD STEP
         # Initialise backward step by calculating activation differential
         self.layers[-1].d_A = L_grad(Y, self.layers[-1].A)
-        loss += L(Y, self.layers[-1].A)
+        loss = L(Y, self.layers[-1].A)
 
         for L in range(self.N - 1, 0, -1):
             this_layer = self.layers[L]

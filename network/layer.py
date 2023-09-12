@@ -61,3 +61,18 @@ class Layer:
     def reset(self):
         self.d_W = 0
         self.d_b = 0
+
+    def copy(self):
+        layer = Layer(0)
+        layer.W = self.W.copy()
+        layer.b = self.b.copy()
+        layer.f = self.f
+        layer.f_grad = self.f_grad
+        layer.m = self.m
+        layer.A = self.A.copy()
+        layer.Z = self.Z.copy()
+        layer.d_A = self.d_A.copy()
+        layer.d_Z = self.d_Z.copy()
+        layer.d_W = self.d_W.copy()
+        layer.d_b = self.d_b.copy()
+        return layer
